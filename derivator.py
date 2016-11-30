@@ -12,12 +12,13 @@ class Logger:
         self.quiet = quiet
 
     def log(self, str, force=False):
-        if (not self.quiet and self.verbosity) or force:
-            print("{}".format(str))
+        if not self.quiet:
+            if self.verbosity or force:
+                print("{}".format(str))
 
 
 class Derivator:
-    def __init__(self, logger, filename, complexmode=False):
+    def __init__(self, logger, filename, complexmode):
         self.log = logger.log
         self.filename = filename
         self.complex = complexmode
@@ -124,7 +125,7 @@ if __name__ == '__main__':
     logger.log("- Derivation start at {}".format(start.strftime('%H:%M:%S')), True)
     for thrd in range(args.threads):
         logger.log("- Starting thread {}".format(thrd))
-        derivator = Derivator(logger, args.output)
+        derivator = Derivator(logger, args.output, args.complex)
         t = threading.Thread(target=derivator.run)
         t.daemon = True
         t.start()
