@@ -1,2 +1,4 @@
-# wderivator
+Wderivator
+===========
+
 Wordlist generator
