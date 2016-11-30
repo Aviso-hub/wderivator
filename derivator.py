@@ -17,8 +17,10 @@ class Logger:
 
 
 class Derivator:
-    def __init__(self, logger):
+    def __init__(self, logger, filename, complexmode=False):
         self.log = logger.log
+        self.filename = filename
+        self.complex = complexmode
         self.leet = {"a": "4", "b": "8", "e": "3", "g": "6", "i": "1", "l": "1", "o": "0", "r": "2", "s": "5", "t": "7", "y": "7", "z": "2"}
 
     def run(self):
@@ -28,7 +30,17 @@ class Derivator:
             self.r = []
             self.log("- Starting derivation for '{}'".format(self.w))
             self.derivate()
+            self.saveToFile()
             q.task_done()
+
+    def saveToFile(self):
+        mutex.acquire()
+        try:
+            with open(self.filename, 'a') as f:
+                for item in self.r:
+                    f.write("{}\n".format(item))
+        finally:
+            mutex.release()
 
     def extend(self, data):
         self.r.extend(data)
@@ -36,7 +48,9 @@ class Derivator:
 
     def derivate(self):
         self.extend(self.getUpperLower(self.w))
-        self.extend(self.getLeet(self.r))
+
+        if self.complex:
+            self.extend(self.getLeet(self.r))
 
         for w in self.r:
             self.extend(self.addUsualNumbers(w))
@@ -44,8 +58,6 @@ class Derivator:
             self.extend(data)
             for sw in data:
                 self.extend(self.addUsualNumbers(sw))
-
-        print(self.r)
 
     def getUpperLower(self, s):
         """ Return a dict containaing all uppercase and lowercase combinations """
@@ -103,7 +115,7 @@ if __name__ == '__main__':
     logger.log("+ Starting WDerivator with {} threads".format(args.threads), True)
 
     q = queue.Queue()
-    r = queue.Queue()
+    mutex = threading.Lock()
     logger.log("- Initializing queue")
     [q.put(_) for _ in args.words]
     logger.log("- Initializing done")
@@ -112,11 +124,11 @@ if __name__ == '__main__':
     logger.log("- Derivation start at {}".format(start.strftime('%H:%M:%S')), True)
     for thrd in range(args.threads):
         logger.log("- Starting thread {}".format(thrd))
-        derivator = Derivator(logger)
+        derivator = Derivator(logger, args.output)
         t = threading.Thread(target=derivator.run)
         t.daemon = True
         t.start()
 
     q.join()
-    logger.log("+ Wordlist has been created in '{}'. It contain {} words".format(args.output, "XX"), True)
+    logger.log("+ Wordlist has been created in '{}'".format(args.output), True)
     logger.log("+ WDerivator end at {} (time elapsed {})".format(datetime.datetime.now().strftime('%H:%M:%S'), datetime.datetime.now() - start), True)
