@@ -2,6 +2,7 @@
 import argparse
 import threading
 import queue
+import itertools
 import datetime
 
 
@@ -18,21 +19,76 @@ class Logger:
 class Derivator:
     def __init__(self, logger):
         self.log = logger.log
+        self.leet = {"a": "4", "b": "8", "e": "3", "g": "6", "i": "1", "l": "1", "o": "0", "r": "2", "s": "5", "t": "7", "y": "7", "z": "2"}
 
     def run(self):
+        """ Loop until queue is empty """
         while True:
             self.w = q.get()
+            self.r = []
             self.log("- Starting derivation for '{}'".format(self.w))
+            self.derivate()
             q.task_done()
+
+    def extend(self, data):
+        self.r.extend(data)
+        self.r = list(set(self.r))
+
+    def derivate(self):
+        self.extend(self.getUpperLower(self.w))
+        self.extend(self.getLeet(self.r))
+
+        for w in self.r:
+            self.extend(self.addUsualNumbers(w))
+            data = self.addSomeChar(w)
+            self.extend(data)
+            for sw in data:
+                self.extend(self.addUsualNumbers(sw))
+
+        print(self.r)
+
+    def getUpperLower(self, s):
+        """ Return a dict containaing all uppercase and lowercase combinations """
+        return list(map(''.join, itertools.product(*zip(s.upper(), s.lower()))))
+
+    def getLeet(self, s):
+        """ Return a dict with all leet combinations """
+        ret = []
+        for word in s:
+            ret.extend([''.join(letters) for letters in itertools.product(*({c, self.leet.get(c, c)} for c in word))])
+        return ret
+
+    def addUsualNumbers(self, s):
+        """ Add some numbers to string """
+        ret = []
+        ret.append(s + "1")
+        ret.append(s + "123")
+        ret.append(s + "123456")
+        ret.append("1" + s)
+        ret.append("123" + s)
+        ret.append("123456" + s)
+        return ret
+
+    def addSomeChar(self, s):
+        """ Add some char """
+        ret = []
+        ret.append(s + "!")
+        ret.append(s + "@")
+        ret.append(s + "#")
+        ret.append("!" + s)
+        ret.append("@" + s)
+        ret.append("#" + s)
+        return ret
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-w", "--words", help="Strings to generate wordlist", nargs="+", required=True)
-    parser.add_argument("-t", "--threads", help="Number of threads", default=1)
+    parser.add_argument("-t", "--threads", help="Number of threads", default=1, type=int)
     parser.add_argument("-o", "--output", help="File to output wordlist", required=True)
     parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
+    parser.add_argument("-c", "--complex", help="Generate complex passwords", action="store_true")
     parser.add_argument("-q", "--quiet", help="Quiet mode", action="store_true")
     args = parser.parse_args()
 
@@ -47,6 +103,7 @@ if __name__ == '__main__':
     logger.log("+ Starting WDerivator with {} threads".format(args.threads), True)
 
     q = queue.Queue()
+    r = queue.Queue()
     logger.log("- Initializing queue")
     [q.put(_) for _ in args.words]
     logger.log("- Initializing done")
@@ -61,5 +118,5 @@ if __name__ == '__main__':
         t.start()
 
     q.join()
-    logger.log("+ Wordlist has been created in '{}'. It contain {} words".format(args.output, len(args.words) * 50), True)
+    logger.log("+ Wordlist has been created in '{}'. It contain {} words".format(args.output, "XX"), True)
     logger.log("+ WDerivator end at {} (time elapsed {})".format(datetime.datetime.now().strftime('%H:%M:%S'), datetime.datetime.now() - start), True)
