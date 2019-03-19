@@ -62,6 +62,22 @@ def derivate_chars(words):
     return data
 
 
+def derivate_date(word):
+    """
+    Add usual dates
+    """
+    logging.debug("Adding usual dates to '{}'".format(word))
+    data = []
+
+    for y in range(1950, datetime.datetime.now().year):
+        data.extend([
+            word + str(y),
+            str(y) + word
+        ])
+
+    return data
+
+
 class Derivator:
     def __init__(self, threads):
         self.data = list()
@@ -74,13 +90,16 @@ class Derivator:
     def schedule(self, function, args, callback=None):
         self.thrds.append(self.pool.apply_async(function, args=args, callback=callback))
 
-    def derivate(self, word, leet=False):
+    def derivate(self, word, leet=False, date=False):
         self.data = list()
         logging.info("Starting derivation for '{}'".format(word))
         self.extend(derivate_case(word))
 
         if leet:
             self.extend(derivate_leet(word))
+
+        if date:
+            self.extend(derivate_date(word))
 
         for w in self.data:
             self.schedule(derivate_numbers, ([w],), callback=self.on_derivate_numbers_finished)
@@ -107,7 +126,8 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--output", help="File to output wordlist", required=True)
     parser.add_argument("-t", "--threads", help="Number of threads", default=5, type=int)
     parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
-    parser.add_argument("-l", "--leet", help="Generate leet passwords", action="store_true")
+    parser.add_argument("--leet", help="Generate leet passwords", action="store_true")
+    parser.add_argument("--date", help="Add date to passwords", action="store_true")
     parser.add_argument("-q", "--quiet", help="Quiet mode", action="store_true")
     args = parser.parse_args()
 
@@ -142,7 +162,7 @@ if __name__ == '__main__':
     derivator = Derivator(args.threads)
 
     for w in args.words:
-        data = derivator.derivate(w, args.leet)
+        data = derivator.derivate(w, args.leet, args.date)
         with open(args.output, 'a') as f:
             for item in data:
                 f.write("{}\n".format(item))
