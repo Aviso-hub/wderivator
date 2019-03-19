@@ -54,11 +54,16 @@ class Derivator:
             self.extend(self.getLeet(self.r))
 
         for w in self.r:
-            self.extend(self.addUsualNumbers(w))
-            data = self.addSomeChar(w)
-            self.extend(data)
-            for sw in data:
-                self.extend(self.addUsualNumbers(sw))
+            wnumber = self.addUsualNumbers(w)
+            self.extend(wnumber)
+            wchar = self.addSomeChar(w)
+            self.extend(wchar)
+
+            for wc in wchar:
+                self.extend(self.addUsualNumbers(wc))
+
+            for wn in wnumber:
+                self.extend(self.addSomeChar(wn))
 
     def getUpperLower(self, s):
         """ Return a dict containaing all uppercase and lowercase combinations """
