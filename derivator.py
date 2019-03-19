@@ -4,22 +4,11 @@ import threading
 import queue
 import itertools
 import datetime
-
-
-class Logger:
-    def __init__(self, verbosity, quiet):
-        self.verbosity = verbosity
-        self.quiet = quiet
-
-    def log(self, str, force=False):
-        if not self.quiet:
-            if self.verbosity or force:
-                print("{}".format(str))
+import logging
 
 
 class Derivator:
-    def __init__(self, logger, filename, complexmode):
-        self.log = logger.log
+    def __init__(self, filename, complexmode):
         self.filename = filename
         self.complex = complexmode
         self.leet = {"a": "4", "b": "8", "e": "3", "g": "6", "i": "1", "l": "1", "o": "0", "r": "2", "s": "5", "t": "7", "y": "7", "z": "2"}
@@ -29,7 +18,7 @@ class Derivator:
         while True:
             self.w = q.get()
             self.r = []
-            self.log("- Starting derivation for '{}'".format(self.w))
+            logging.info("Starting derivation for '{}'".format(self.w))
             self.derivate()
             self.saveToFile()
             q.task_done()
@@ -110,31 +99,40 @@ if __name__ == '__main__':
     parser.add_argument("-q", "--quiet", help="Quiet mode", action="store_true")
     args = parser.parse_args()
 
-    logger = Logger(args.verbose, args.quiet)
+    if args.quiet:
+        loglevel = logging.FATAL
+    else:
+        loglevel = logging.DEBUG if args.verbose else logging.INFO
 
-    logger.log("----------------------------------------------------------", True)
-    logger.log("- WDerivator v1.0", True)
-    logger.log("- Author : Aviso", True)
-    logger.log("- Last update : 12-2016", True)
-    logger.log("- GitHub : https://github.com/Aviso-hub/wderivator", True)
-    logger.log("----------------------------------------------------------\n", True)
-    logger.log("+ Starting WDerivator with {} threads".format(args.threads), True)
+    logging.basicConfig(
+        level=loglevel,
+        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
+
+    logging.info("----------------------------------------------------------")
+    logging.info("WDerivator v1.0")
+    logging.info("Author : Aviso")
+    logging.info("Last update : 12-2016")
+    logging.info("GitHub : https://github.com/Aviso-hub/wderivator")
+    logging.info("----------------------------------------------------------")
+    logging.info("Starting WDerivator with {} threads".format(args.threads))
 
     q = queue.Queue()
     mutex = threading.Lock()
-    logger.log("- Initializing queue")
+    logging.debug("Initializing queue")
     [q.put(_) for _ in args.words]
-    logger.log("- Initializing done")
+    logging.debug("Initializing done")
 
     start = datetime.datetime.now()
-    logger.log("- Derivation start at {}".format(start.strftime('%H:%M:%S')), True)
     for thrd in range(args.threads):
-        logger.log("- Starting thread {}".format(thrd))
-        derivator = Derivator(logger, args.output, args.complex)
+        logging.debug("Starting thread {}".format(thrd))
+        derivator = Derivator(args.output, args.complex)
         t = threading.Thread(target=derivator.run)
         t.daemon = True
         t.start()
 
     q.join()
-    logger.log("+ Wordlist has been created in '{}'".format(args.output), True)
-    logger.log("+ WDerivator end at {} (time elapsed {})".format(datetime.datetime.now().strftime('%H:%M:%S'), datetime.datetime.now() - start), True)
+    logging.info("WDerivator end (time elapsed {})".format(datetime.datetime.now() - start))
