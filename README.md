@@ -6,22 +6,31 @@ Wordlist generator
 ## Example usage
 
 ```
-> python3 derivator.py -v -o output -w pass password 
-----------------------------------------------------------
-- WDerivator v1.0
-- Author : Aviso
-- Last update : 12-2016
-- GitHub : https://github.com/Aviso-hub/wderivator
-----------------------------------------------------------
+> python3 derivator.py -o output -w password
+2019-03-19 09:42:00 ----------------------------------------------------------
+2019-03-19 09:42:00 WDerivator v1.1
+2019-03-19 09:42:00 Author : Aviso
+2019-03-19 09:42:00 Last update : 03-2019
+2019-03-19 09:42:00 GitHub : https://github.com/Aviso-hub/wderivator
+2019-03-19 09:42:00 ----------------------------------------------------------
+2019-03-19 09:42:00 Starting WDerivator with 5 threads
+2019-03-19 09:42:00 Starting derivation for 'password'
+2019-03-19 09:42:00 17152 password derivated.
+2019-03-19 09:42:00 WDerivator end (time elapsed 0:00:00.153905)
 
-+ Starting WDerivator with 1 threads
-- Initializing queue
-- Initializing done
-- Derivation start at 17:05:28
-- Starting thread 0
-- Starting derivation for 'pass'
-- Starting derivation for 'password'
-+ Wordlist has been created in 'output'
-+ WDerivator end at 17:05:29 (time elapsed 0:00:00.786530)
+> wc -l output
+17152 output
+
+> head -n 10 output
+123456!PAsSwOrD
+@1PAsSWOrd
+PaSsWorD@1
+@paSSwOrd123456
+PAsSWoRd@123456
+!123456PaSSworD
+@pAssWoRD
+pASSWord@123
+1#pAsswORd
+#passwORD1
 
 ```
